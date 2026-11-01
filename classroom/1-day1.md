@@ -95,56 +95,42 @@ The application improperly trusts client-side responses, allowing attackers to m
 ### Steps to Reproduce
 
 1. Sign up to the application using a temporary email and observe that an OTP is sent to the inbox of the applicant.
+    <image src="./images/day1/Screenshot 2026-10-30 at 10.41.29 PM.png">    
+    <image src="./images/day1/Screenshot 2026-10-30 at 10.52.53 PM.png">
+    <image src="./images/day1/Screenshot 2026-10-30 at 10.53.02 PM.png">
+The third image above gives us an idea about how the backend processes the OTP - especially the `201 Created response`.
     
-    !Screenshot 2026-10-30 at 10.41.29 PM.png
-    
-    !Screenshot 2026-10-30 at 10.52.53 PM.png
-    
-    !Screenshot 2026-10-30 at 10.53.02 PM.png
-    
-    The third image above gives us an idea about how the backend processes the OTP - especially the `201 Created response`.
-    
-    ```bash
+```bash
     HTTP/2 201 Created
     ...
     {
-    	"contact":"<email>",
-    	"verifiedAt":"<timestamp>"
+        "contact":"<email>",
+        "verifiedAt":"<timestamp>"
     }
-    ```
+```
     
 2. Enter an appropriate mobile number as per the country within which the application functions and observe the response
-    
-    !Screenshot 2026-10-30 at 11.07.38 PM.png
-    
-    !Screenshot 2026-10-30 at 11.07.29 PM.png
-    
-3. Input an incorrect OTP and capture the request to see how the backend handles it.
-    
-    !Screenshot 2026-10-30 at 11.07.38 PM.png
-    
-    !Screenshot 2026-10-30 at 11.09.19 PM.png
-    
+    <image src="./images/day1/Screenshot 2026-10-30 at 10.53.02 PM.png">
+    <image src="./images/day1/Screenshot 2026-10-30 at 11.07.29 PM.png">
 
+3. Input an incorrect OTP and capture the request to see how the backend handles it.
+    <image src="./images/day1/Screenshot 2026-10-30 at 10.53.02 PM.png">
+    <image src="./images/day1/Screenshot 2026-10-30 at 11.09.19 PM.png">
 Here we can see that it gives a 401 Unauthorized and the same in the message block of the response. Attempt to manipulate it.
 
 ```bash
-HTTP/2 401 Unauthorized
-...
-{
-	"statusCode":401,
-	"message":"OTP invalid or expired"
-}
+    HTTP/2 401 Unauthorized
+    ...
+    {
+        "statusCode":401,
+        "message":"OTP invalid or expired"
+    }
 ```
 
-1. Attempt the manipulate the response captured in Burp Suite to match the pattern above and forward the response.
-    
-    !Screenshot 2026-10-30 at 11.09.37 PM.png
-    
-    !Screenshot 2026-10-30 at 11.15.59 PM.png
-    
-    !Screenshot 2026-10-30 at 11.10.35 PM.png
-    
+4. Attempt the manipulate the response captured in Burp Suite to match the pattern above and forward the response.
+    <image src="./images/day1/Screenshot 2026-10-30 at 11.09.37 PM.png">
+    <image src="./images/day1/Screenshot 2026-10-30 at 11.15.59 PM.png">
+    <image src="./images/day1/Screenshot 2026-10-30 at 11.10.35 PM.png">
 
 Here, we can see that the browser accepts the modified Burp Suite forwarded response and sets the `Authorization: Bearer <token>`. This implies that the browser accepts client side modified data and proceeds without verifying if the server side state is modified or not.
 
