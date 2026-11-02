@@ -1,7 +1,8 @@
 # Day 1 - Burp Suite for Beginners
+
 ## Overview
 
-- Started with a quick course overview
+- Started with a quick course overview 
     
     ```
     1. Burp Suite for Beginners
@@ -70,86 +71,9 @@
 
 ---
 
-## Practical
-
----
-
-### Title
-
-OTP bypass leading to unauthorised access on target.
-
-### OWASP - Vulnerability
-
-OWASP Top 10 2025 - A07 Authentication Failures
-
-### Summary
-
-The application improperly trusts client-side responses, allowing attackers to manipulate OTP failure statuses into success states and completely bypass authentication.
-
-### Vulnerable Endpoint
-
-```bash
-/api/v1/uwa/auth/otp/verify
-```
-
-### Steps to Reproduce
-
-1. Sign up to the application using a temporary email and observe that an OTP is sent to the inbox of the applicant.
-    <image src="./images/day1/Screenshot 2026-10-30 at 10.41.29 PM.png">    
-    <image src="./images/day1/Screenshot 2026-10-30 at 10.52.53 PM.png">
-    <image src="./images/day1/Screenshot 2026-10-30 at 10.53.02 PM.png">
-The third image above gives us an idea about how the backend processes the OTP - especially the `201 Created response`.
-    
-```bash
-    HTTP/2 201 Created
-    ...
-    {
-        "contact":"<email>",
-        "verifiedAt":"<timestamp>"
-    }
-```
-    
-2. Enter an appropriate mobile number as per the country within which the application functions and observe the response
-    <image src="./images/day1/Screenshot 2026-10-30 at 10.53.02 PM.png">
-    <image src="./images/day1/Screenshot 2026-10-30 at 11.07.29 PM.png">
-
-3. Input an incorrect OTP and capture the request to see how the backend handles it.
-    <image src="./images/day1/Screenshot 2026-10-30 at 10.53.02 PM.png">
-    <image src="./images/day1/Screenshot 2026-10-30 at 11.09.19 PM.png">
-Here we can see that it gives a 401 Unauthorized and the same in the message block of the response. Attempt to manipulate it.
-
-```bash
-    HTTP/2 401 Unauthorized
-    ...
-    {
-        "statusCode":401,
-        "message":"OTP invalid or expired"
-    }
-```
-
-4. Attempt the manipulate the response captured in Burp Suite to match the pattern above and forward the response.
-    <image src="./images/day1/Screenshot 2026-10-30 at 11.09.37 PM.png">
-    <image src="./images/day1/Screenshot 2026-10-30 at 11.15.59 PM.png">
-    <image src="./images/day1/Screenshot 2026-10-30 at 11.10.35 PM.png">
-
-Here, we can see that the browser accepts the modified Burp Suite forwarded response and sets the `Authorization: Bearer <token>`. This implies that the browser accepts client side modified data and proceeds without verifying if the server side state is modified or not.
-
-### Impact / Risk
-
-1. Malicious actors can completely bypass OTP verification controls by manipulating response codes (e.g., converting a `401 Unauthorized` into a  `201 Created`  state), allowing unauthorized account creation or access.
-2. Attackers can generate or accept valid session tokens (`Bearer` tokens) without proof of identity, leading to potential unauthorized access to user accounts and sensitive data.
-3. Relying on client-side state or browser-enforced validation exposes a critical architectural flaw where security controls are treated as cosmetic rather than authoritative.
-
-### Recommendation
-
-1. Ensure that session tokens and authorization headers are issued exclusively by the backend *only after* verifying that all prerequisite verification steps (such as valid OTP submission) have successfully passed server-side checks.
-2. Eliminate any logic where the client application trusts response bodies or status codes provided or modified by the user; all security-critical decisions must be validated on the server.
-3. Use securely signed tokens (such as cryptographically verified JWTs) bound to a validated server-side session state to prevent unauthorized token generation or injection.
-
----
-
 ## Template
-```text
+
+```
 # Vulnerability Report Template
 
 ## Title
